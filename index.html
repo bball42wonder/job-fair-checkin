@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Fair Check-In</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f2f2f2;
+      padding: 20px;
+    }
+    #clearedScreen {
+      display: none;
+      background-color: #00cc66;
+      color: white;
+      padding: 50px;
+      font-size: 32px;
+      border-radius: 12px;
+      margin-top: 40px;
+    }
+    #checkInBtn {
+      display: none;
+      padding: 20px 40px;
+      font-size: 24px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #signInDiv {
+      display: flex;
+      justify-content: center;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Welcome to the 2025 Future Focused Job Fair</h2>
+<div id="signInDiv"></div>
+<button id="checkInBtn" onclick="handleCheckIn()">Check In</button>
+<div id="clearedScreen">✅ CLEARED!<br>You're checked in.</div>
+
+<script>
+  let studentProfile = null;
+
+  function onSignIn(response) {
+    const userInfo = jwt_decode(response.credential);
+    studentProfile = {
+      name: userInfo.name,
+      email: userInfo.email,
+      school: inferSchool(userInfo.email)
+    };
+    document.getElementById("checkInBtn").style.display = "inline-block";
+    document.getElementById("signInDiv").style.display = "none";
+  }
+
+  function handleCheckIn() {
+    if (!studentProfile) return;
+
+    const payload = {
+      name: studentProfile.name,
+      email: studentProfile.email,
+      school: studentProfile.school,
+      timestamp: new Date().toISOString()
+    };
+
+    fetch("https://script.google.com/macros/s/AKfycbxqd61K3FG5iuI2q0JqNYBjPigFFLNBGF7M-PVeWzubQaIlD48zd_sNcgxSTlG0Mw2A/exec", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(response => {
+      if (!response.ok) throw new Error("Network response was not ok");
+      return response.text();
+    })
+    .then(result => {
+      console.log("✅ Success:", result);
+      document.getElementById("checkInBtn").style.display = "none";
+      document.getElementById("clearedScreen").style.display = "block";
+    })
+    .catch(error => {
+      console.error("❌ Error submitting data:", error);
+      alert("Something went wrong during check-in. See console for details.");
+    });
+  }
+
+  function inferSchool(email) {
+    const domain = email.split('@')[1];
+    if (domain.includes("fruitport")) return "Fruitport High School";
+    if (domain.includes("monashores")) return "Mona Shores High School";
+    if (domain.includes("montague")) return "Montague High School";
+    return "Unknown School";
+  }
+
+  // Load JWT decoder first, THEN initialize Google Sign-In
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/jwt-decode@4.0.0/build/jwt-decode.min.js';
+  script.onload = () => {
+    google.accounts.id.initialize({
+      client_id: '519950887157-9377balk8dgtvoul4lgo3idh6c9dl826.apps.googleusercontent.com',
+      callback: onSignIn
+    });
+    google.accounts.id.renderButton(
+      document.getElementById("signInDiv"),
+      {
+        theme: "outline",
+        size: "large",
+        text: "signin_with",
+        shape: "rectangular"
+      }
+    );
+    google.accounts.id.prompt();
+  };
+  document.head.appendChild(script);
+</script>
+
+</body>
+</html>
