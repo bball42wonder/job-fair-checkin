@@ -41,7 +41,7 @@
     const school = email.split('@')[1].split('.')[0];
 
     // Send name and school to your backend (Cloud Function URL)
-    fetch("https://script.google.com/macros/s/AKfycbxMJj3ptTVf_yiaVGA25iJNQBH_HRSR2xgvpn38EfDXJqW80XfXZeJylFgGeVeVJW-q/exec", {
+    fetch("https://jobfair-checkin-519950887157.us-central1.run.app", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, school }),
